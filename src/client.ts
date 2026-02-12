@@ -269,4 +269,88 @@ export class TimingClient {
     const res = await this.request<TeamMember[]>('GET', `/teams/${id}/members`);
     return res.data;
   }
+
+  // ============ Activity Hierarchy (Beta) ============
+
+  async getActivityHierarchy(params: {
+    start_date: string;
+    end_date: string;
+    block_size?: 'total' | 'month' | 'week' | 'day' | 'hour' | '15min' | '5min';
+    minimum_duration_seconds?: number;
+    group_by_project?: boolean;
+    max_depth?: number;
+    max_lines?: number;
+    include_mobile_devices?: boolean;
+    project_ids?: string[];
+    include_subprojects?: boolean;
+  }): Promise<string> {
+    const url = new URL(`${this.baseUrl}/activity-hierarchy`);
+    
+    url.searchParams.append('start_date', params.start_date);
+    url.searchParams.append('end_date', params.end_date);
+    
+    if (params.block_size) {
+      url.searchParams.append('block_size', params.block_size);
+    }
+    if (params.minimum_duration_seconds !== undefined) {
+      url.searchParams.append('minimum_duration_seconds', String(params.minimum_duration_seconds));
+    }
+    if (params.group_by_project !== undefined) {
+      url.searchParams.append('group_by_project', params.group_by_project ? 'true' : 'false');
+    }
+    if (params.max_depth !== undefined) {
+      url.searchParams.append('max_depth', String(params.max_depth));
+    }
+    if (params.max_lines !== undefined) {
+      url.searchParams.append('max_lines', String(params.max_lines));
+    }
+    if (params.include_mobile_devices !== undefined) {
+      url.searchParams.append('include_mobile_devices', params.include_mobile_devices ? 'true' : 'false');
+    }
+    if (params.project_ids && Array.isArray(params.project_ids) && params.project_ids.length) {
+      params.project_ids.forEach((id, i) => {
+        url.searchParams.append(`project_ids[${i}]`, id);
+      });
+    }
+    if (params.include_subprojects !== undefined) {
+      url.searchParams.append('include_subprojects', params.include_subprojects ? 'true' : 'false');
+    }
+
+    const headers: Record<string, string> = {
+      'Authorization': `Bearer ${this.apiKey}`,
+      'Accept': 'text/plain',
+    };
+
+    if (this.timezone) {
+      headers['X-Time-Zone'] = this.timezone;
+    }
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      let errorBody: unknown;
+      try {
+        errorBody = await response.text();
+      } catch {
+        errorBody = 'Unknown error';
+      }
+      
+      if (response.status === 401) {
+        throw new TimingApiError('Invalid API key', response.status, errorBody);
+      }
+      if (response.status === 429) {
+        throw new TimingApiError('Rate limit exceeded', response.status, errorBody);
+      }
+      throw new TimingApiError(
+        `API error: ${response.status} ${response.statusText}`,
+        response.status,
+        errorBody
+      );
+    }
+
+    return await response.text();
+  }
 }

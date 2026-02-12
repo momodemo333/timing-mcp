@@ -133,6 +133,17 @@ Add to your mcporter config:
 | `timing_list_teams` | List your teams |
 | `timing_list_team_members` | List team members |
 
+### Activity Hierarchy (Beta) ⭐
+| Tool | Description |
+|------|-------------|
+| `timing_activity_hierarchy` | Get detailed activity breakdown (apps, files, URLs). Perfect for daily summaries and billing preparation |
+
+**Activity Hierarchy** is the key tool for AI-powered time analysis:
+- See exactly what apps/files/URLs you used
+- Identify unassigned time that needs billing
+- Generate daily/weekly summaries
+- Prepare accurate invoices
+
 ## MCP Resources
 
 | URI | Description |
@@ -159,6 +170,12 @@ User: "Stop the timer"
 
 User: "What projects do I have?"
 → timing_list_projects {}
+
+User: "What did I do yesterday?"
+→ timing_activity_hierarchy { start_date: "2026-02-11", end_date: "2026-02-11", block_size: "total" }
+
+User: "Show me unassigned time from last week"
+→ timing_activity_hierarchy { start_date: "2026-02-05", end_date: "2026-02-11", project_ids: ["0"], max_lines: 200 }
 ```
 
 ## Development

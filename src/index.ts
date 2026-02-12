@@ -415,6 +415,48 @@ const TOOLS = [
       required: ['team_id'],
     },
   },
+
+  // Activity Hierarchy (Beta) - For AI summaries and time analysis
+  {
+    name: 'timing_activity_hierarchy',
+    description: 'Get hierarchical view of activities (apps, files, URLs used). Perfect for daily/weekly summaries, time analysis, and billing preparation. Returns plain text optimized for LLMs. Use block_size=total for overview, block_size=day for daily breakdown, block_size=hour for detailed analysis.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        start_date: {
+          type: 'string',
+          description: 'Start date (ISO format, e.g., "2024-01-15" or "2024-01-15T09:00:00")',
+        },
+        end_date: {
+          type: 'string',
+          description: 'End date (ISO format)',
+        },
+        block_size: {
+          type: 'string',
+          enum: ['total', 'month', 'week', 'day', 'hour', '15min', '5min'],
+          description: 'Time grouping: total (overview), day (daily breakdown), hour (detailed). Default: total',
+        },
+        max_lines: {
+          type: 'number',
+          description: 'Max activities to return (1-1000). Use 50 for quick summary, 100-200 for detailed view. Default: 100',
+        },
+        project_ids: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Filter by project IDs. Use "0" for unassigned activities only',
+        },
+        include_subprojects: {
+          type: 'boolean',
+          description: 'Include child projects when filtering. Default: true',
+        },
+        minimum_duration_seconds: {
+          type: 'number',
+          description: 'Filter out activities shorter than this (seconds). Default: 60',
+        },
+      },
+      required: ['start_date', 'end_date'],
+    },
+  },
 ];
 
 // ============ Tool Handlers ============
@@ -673,6 +715,33 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
         const text = members.map(m => `• ${m.name || m.email} (${m.email})`).join('\n');
         return { content: [{ type: 'text', text: `Team Members:\n\n${text}` }] };
+      }
+
+      // Activity Hierarchy (Beta)
+      case 'timing_activity_hierarchy': {
+        const params = args as {
+          start_date: string;
+          end_date: string;
+          block_size?: 'total' | 'month' | 'week' | 'day' | 'hour' | '15min' | '5min';
+          max_lines?: number;
+          project_ids?: string[];
+          include_subprojects?: boolean;
+          minimum_duration_seconds?: number;
+        };
+        
+        const activityText = await client.getActivityHierarchy({
+          start_date: params.start_date,
+          end_date: params.end_date,
+          block_size: params.block_size || 'total',
+          max_lines: params.max_lines || 100,
+          project_ids: params.project_ids,
+          include_subprojects: params.include_subprojects,
+          minimum_duration_seconds: params.minimum_duration_seconds,
+        });
+        
+        return {
+          content: [{ type: 'text', text: activityText }],
+        };
       }
 
       default:
