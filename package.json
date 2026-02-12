@@ -1,21 +1,41 @@
 {
   "name": "timing-mcp",
   "version": "1.0.0",
-  "description": "MCP server for Timing time-tracking API",
+  "description": "MCP server for Timing time-tracking API - manage timers, time entries, projects, and reports",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/momodemo333/timing-mcp"
+  },
   "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "timing-mcp": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean",
     "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": ["mcp", "timing", "time-tracking", "claude"],
-  "author": "Morgan",
+  "keywords": [
+    "mcp",
+    "timing",
+    "timingapp",
+    "time-tracking",
+    "timer",
+    "claude",
+    "llm",
+    "model-context-protocol"
+  ],
+  "author": "Morgan Demoulin",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",

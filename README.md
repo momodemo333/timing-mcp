@@ -14,7 +14,17 @@ MCP (Model Context Protocol) server for the [Timing](https://timingapp.com) time
 
 ## Installation
 
+### Via npx (recommended)
+
 ```bash
+npx timing-mcp
+```
+
+### From source
+
+```bash
+git clone https://github.com/momodemo333/timing-mcp
+cd timing-mcp
 npm install
 npm run build
 ```
